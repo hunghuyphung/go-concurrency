@@ -1,13 +1,13 @@
 I. Unbuffered channel
 Ex1: error
-ch := make(chan int)
-fmt.Println("Main goroutine is running")
-ch <- 1
+    ch := make(chan int)
+    fmt.Println("Main goroutine is running")
+    ch <- 1
 
-go func() {
-	fmt.Println("Anonymous goroutine is running")
-	fmt.Println(<-ch)
-}()
+    go func() {
+    	fmt.Println("Anonymous goroutine is running")
+    	fmt.Println(<-ch)
+    }()
 
 - Result: deadlock
 - Explain:
@@ -20,53 +20,79 @@ go func() {
 - Fix: create another goroutine that precedes the operation ch <- 1
 
 Ex2: fix ex1
-myCh := make(chan int)
-fmt.Println("Main goroutine is running")
+    ch := make(chan int)
+    fmt.Println("Main goroutine is running")
 
-go func() {
-	fmt.Println("Anonymous goroutine is running")
-	fmt.Println(<-myCh)
-}()
+    go func() {
+    	fmt.Println("Anonymous goroutine is running")
+    	fmt.Println(<-ch)
+    }()
 
-myCh <- 1
+    ch <- 1
 
 Ex3: error
-c := make(chan int)
-c <- 2
-fmt.Printf("Received: %d\n", <-c)
+    c := make(chan int)
+    c <- 2
+    fmt.Printf("Received: %d\n", <-c)
 
 - Result: error
 - Explain: c <-2: this line is executed, it will block goroutine
 
 II. Method close(): Closing a channel indicates that no more values will be sent through it.
 Ex1:
-ch := make(chan int)
-fmt.Println("Main goroutine is running")
-go func() {
-	fmt.Println("Anonymous goroutine is running")
-	for i := 0; i < 10; i++ {
-		fmt.Printf("Value from channel %d\n", <-ch)
-	}
-}()
+    ch := make(chan int)
+    fmt.Println("Main goroutine is running")
+    go func() {
+    	fmt.Println("Anonymous goroutine is running")
+    	for i := 0; i < 10; i++ {
+    		fmt.Printf("Value from channel %d\n", <-ch)
+    	}
+    }()
 
-for i := 0; i < 10; i++ {
-	ch <- i
-}
+    for i := 0; i < 10; i++ {
+    	ch <- i
+    }
 
-close(ch)
+    close(ch)
 
 Ex2. for-range for channel and check channel closed
-ch := make(chan int)
-fmt.Println("Main goroutine is running")
-go func() {
-	fmt.Println("Anonymous goroutine is running")
-	for v := range ch {
-		fmt.Printf("Value from channel %d\n", v)
+    ch := make(chan int)
+    fmt.Println("Main goroutine is running")
+    go func() {
+    	fmt.Println("Anonymous goroutine is running")
+    	for v := range ch {
+    		fmt.Printf("Value from channel %d\n", v)
+    	}
+    }()
+
+    for i := 0; i < 10; i++ {
+    	ch <- i
+    }
+
+    close(ch)
+
+III. select-case, select-for
+Ex1: select-case: choose a channel that have data and run case chosen
+    r := rand.New(rand.NewSource(time.Now().Unix()))
+
+	ch1 := make(chan int)
+	ch2 := make(chan int)
+
+	go func() {
+		time.Sleep(time.Second * time.Duration(r.Intn(5)))
+		ch1 <- 1
+	}()
+
+	go func() {
+		time.Sleep(time.Second * time.Duration(r.Intn(5)))
+		ch2 <- 2
+	}()
+
+	select {
+	case v1 := <-ch1:
+		fmt.Println("Ch1 come first with value:", v1)
+		fmt.Println("then ch2 with value:", <-ch2)
+	case v2 := <-ch2:
+		fmt.Println("Ch2 come first with value:", v2)
+		fmt.Println("then ch1 with value:", <-ch1)
 	}
-}()
-
-for i := 0; i < 10; i++ {
-	ch <- i
-}
-
-close(ch)
