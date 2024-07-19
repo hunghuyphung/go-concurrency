@@ -53,4 +53,5 @@ func main() {
 	ch <- 1
 	ch <- 2
 	ch <- 3
+	fmt.Println("Main goroutine is done")
 }
