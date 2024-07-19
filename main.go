@@ -1,12 +1,11 @@
 package main
 
-import "fmt"
-
 func main() {
 	/*
 		Unbuffered channel
 	*/
 
+	//error
 	//ch := make(chan int)
 	//fmt.Println("Main goroutine is running")
 	//ch <- 1
@@ -29,6 +28,7 @@ func main() {
 		        1. Create another goroutine that precedes the operation ch <- 1
 	*/
 
+	//success
 	//myCh := make(chan int)
 	//fmt.Println("Main goroutine is running")
 	//
@@ -39,19 +39,12 @@ func main() {
 	//
 	//myCh <- 1
 
-	ch := make(chan int)
+	//error
+	//c := make(chan int)
+	//c <- 2
+	//fmt.Printf("Received: %d\n", <-c)
 
-	go func() {
-		fmt.Println("Anonymous goroutine is running")
-		fmt.Println("Get values from ch channel")
-		for i := 0; i < 3; i++ {
-			fmt.Println(<-ch)
-		}
-	}()
-
-	fmt.Println("Main goroutine is running")
-	ch <- 1
-	ch <- 2
-	ch <- 3
-	fmt.Println("Main goroutine is done")
+	/*
+		c <-2: this line is executed, it will block goroutine
+	*/
 }
