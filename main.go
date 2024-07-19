@@ -4,20 +4,20 @@ import "fmt"
 
 func main() {
 	/*
-		Unbuffered Channel
+		Unbuffered channel
 	*/
 
-	ch := make(chan int)
-	fmt.Println("Main goroutine is running")
-	ch <- 1
-
-	go func() {
-		fmt.Println("Anonymous goroutine is running")
-		fmt.Println(<-ch)
-	}()
+	//ch := make(chan int)
+	//fmt.Println("Main goroutine is running")
+	//ch <- 1
+	//
+	//go func() {
+	//	fmt.Println("Anonymous goroutine is running")
+	//	fmt.Println(<-ch)
+	//}()
 
 	/*
-		- Result: Deadlock
+		- Result: deadlock
 		- Explain:
 				1. ch := make(chan int): This creates an unbuffered channel ch that can send and receive integer values.
 				2. fmt.Println("Main goroutine is running"): This prints a message indicating that the main goroutine has started executing.
@@ -29,13 +29,28 @@ func main() {
 		        1. Create another goroutine that precedes the operation ch <- 1
 	*/
 
-	myCh := make(chan int)
-	fmt.Println("Main goroutine is running")
+	//myCh := make(chan int)
+	//fmt.Println("Main goroutine is running")
+	//
+	//go func() {
+	//	fmt.Println("Anonymous goroutine is running")
+	//	fmt.Println(<-myCh)
+	//}()
+	//
+	//myCh <- 1
+
+	ch := make(chan int)
 
 	go func() {
 		fmt.Println("Anonymous goroutine is running")
-		fmt.Println(<-myCh)
+		fmt.Println("Get values from ch channel")
+		for i := 0; i < 3; i++ {
+			fmt.Println(<-ch)
+		}
 	}()
 
-	myCh <- 1
+	fmt.Println("Main goroutine is running")
+	ch <- 1
+	ch <- 2
+	ch <- 3
 }
