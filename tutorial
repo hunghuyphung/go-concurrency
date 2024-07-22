@@ -1,4 +1,6 @@
 I. Unbuffered channel
+- A unbuffered channel is not capable of storing data within it
+
 Ex1: error
     ch := make(chan int)
     fmt.Println("Main goroutine is running")
@@ -71,7 +73,7 @@ Ex2. for-range for channel and check channel closed
 
     close(ch)
 
-III. select-case, select-for
+III. for-select-case
 Ex1: select-case: choose a channel that have data and run case chosen
     r := rand.New(rand.NewSource(time.Now().Unix()))
 
@@ -87,12 +89,30 @@ Ex1: select-case: choose a channel that have data and run case chosen
 		time.Sleep(time.Second * time.Duration(r.Intn(5)))
 		ch2 <- 2
 	}()
-
-	select {
-	case v1 := <-ch1:
-		fmt.Println("Ch1 come first with value:", v1)
-		fmt.Println("then ch2 with value:", <-ch2)
-	case v2 := <-ch2:
-		fmt.Println("Ch2 come first with value:", v2)
-		fmt.Println("then ch1 with value:", <-ch1)
+    for {
+        select {
+        case v1 := <-ch1:
+            fmt.Println("Ch1 come first with value:", v1)
+            fmt.Println("then ch2 with value:", <-ch2)
+        case v2 := <-ch2:
+            fmt.Println("Ch2 come first with value:", v2)
+            fmt.Println("then ch1 with value:", <-ch1)
+        }
 	}
+
+IV. Buffered channel
+- A buffered channel is capable of storing data within it => So, it is not full, data send to channel without block goroutine
+
+Ex1:
+	ch := make(chan int, 2)
+
+	ch <- 1
+	ch <- 2
+	ch <- 3
+
+- Result: deadlock
+- Explain: ch <- 3. This line attempts send data to buffered channel that overflows the channel
+
+V. Unbuffered vs buffered channel
+- Let's imagine a buffered channel have a warehouse to store data. When warehouse is not full, data can still be sent
+  in without causing deadlock.
