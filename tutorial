@@ -116,3 +116,63 @@ Ex1:
 V. Unbuffered vs buffered channel
 - Let's imagine a buffered channel have a warehouse to store data. When warehouse is not full, data can still be sent
   in without causing deadlock.
+
+VI. Why does console sometimes only print 8 persons instead of 9?
+    func main() {
+        fmt.Println("Main goroutine")
+    	ch := make(chan model.Person)
+
+    	go func() {
+    	    fmt.Println("Anonymous goroutine")
+    		for v := range ch {
+    			fmt.Println(v.ToString())
+    		}
+    	}()
+
+    	for i := 0; i < 10; i++ {
+    		send(ch, i)
+    	}
+
+    	close(ch)
+    }
+
+    func send(ch chan model.Person, id int) {
+    	ch <- model.Person{Id: id, Name: "Hung", Age: rand.IntN(100), Address: "VY,VP"}
+    }
+
+
+- A few reasons:
+    + The program(main function - main goroutine) might be terminating before all goroutines finish executing.
+    + There might be a race condition in the code not shown here.
+    + The rand.IntN(100) function might be causing some unexpected behavior if it's not properly seeded.
+- Fix:
+    + Sleep main goroutine
+    + Make main goroutine must wait for anonymous goroutine to finish
+
+    //sleep main goroutine
+    func main() {
+        ...
+        close(ch)
+    	time.Sleep(1 * time.Microsecond)
+    }
+
+    //use sync.WaitGroup
+    func main() {
+        ch := make(chan model.Person)
+        var wg sync.WaitGroup
+        wg.Add(1)
+
+        go func() {
+           defer wg.Done()
+           for v := range ch {
+              fmt.Println(v.ToString())
+           }
+        }()
+
+        for i := 0; i < 10; i++ {
+           send(ch, i)
+        }
+
+        close(ch)
+        wg.Wait()
+    }
